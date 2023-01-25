@@ -11,23 +11,31 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+import dotenv # <- New
+
+# Add .env variables anywhere before SECRET_KEY
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
+dotenv_file = os.path.join(BASE_DIR, ".env")
+if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-soa19q68jlshfc*uc8y2oqnevr8+zw-ia6=%dkbtgx(l1d@6m#'
 
+SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+DEBUG = os.environ.get('DEBUG', 'true') == 'true'
 
 ALLOWED_HOSTS = []
-
-
+# environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+ # reading .env file
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'leads',
+    'quotations',
+    'account'
 ]
 
 MIDDLEWARE = [
@@ -73,13 +85,31 @@ WSGI_APPLICATION = 'Crmproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
+if DEBUG :
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['POSTGRES_USER'],
+            'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+            'HOST': os.environ['POSTGRES_HOST'],
+            'PORT': os.environ['POSTGRES_PORT'],
+        },
+    }
+else :
+     DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['PROD_DB_NAME'],
+            'USER': os.environ['PROD_POSTGRES_USER'],
+            'PASSWORD': os.environ['PROD_POSTGRES_PASSWORD'],
+            'HOST': os.environ['PROD_POSTGRES_HOST'],
+            'PORT': os.environ['PROD_POSTGRES_PORT'],
+        },
+    }
+    
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -116,6 +146,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = 'media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
